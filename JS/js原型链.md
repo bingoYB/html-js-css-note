@@ -50,7 +50,7 @@ String.prototype.__proto__ === Object.prototype //返回true
 
 
 
-##### function的prototype继承
+##### function的prototype
 
 每个function对象都有prototype属性，通过`new`操作符
 
@@ -82,7 +82,11 @@ ClassA.call(obj);
 
 
 
-多层次继承
+##### 继承的方式：
+
+原型链继承，构造继承，实例继承，拷贝继承
+
+首先定义一个父类
 
 ```js
 //新建一个构造函数
@@ -94,16 +98,93 @@ function Animail(name){
 Animail.prototype.getName = function(){
     return this.name;
 }
+```
+
+
+
+原型链继承
+
+```js
 
 function Cat(name){
     this.name = name;
 }
+//cat继承Animail
 Cat.prototype = new Animail()
-//通过new实例化一个对象
-var cat = new Animail("TOM") //新建一个名字叫TOM的猫
-//调用继承的属性方法
-cat.getName()//返回'TOM'
+//将prototype的construction指向构造函数
+Cat.prototype.constructor = Cat
+
+/**缺点**/
+/**
+1 来自原型对象的所有属性被所有实例共享
+2 创建子类实例时，无法向父类构造函数传参
+**/
 ```
+
+构造继承
+
+```js
+function Cat(name){
+  Animal.call(this);
+  this.name = name || 'Tom';
+}
+
+/**缺点**/
+/**
+1 只能继承父类实例属性，无法继承父类的原型属性
+2 无法实现函数复用，每个子类都有父类实例函数的副本，影响性能
+**/
+```
+
+实例继承
+
+```js
+function Cat(name){
+  var instance = new Animal();
+  instance.name = name || 'Tom';
+  return instance;
+}
+
+/**缺点**/
+/**
+1 实例是父类的实例，不是子类的实例
+2 不支持多继承
+**/
+```
+
+拷贝继承
+
+```js
+function Cat(name){
+  var animal = new Animal();
+  for(var p in animal){
+    Cat.prototype[p] = animal[p];
+  }
+  Cat.prototype.name = name || 'Tom';
+}
+
+/**缺点**/
+/**
+1 效率较低，内存占用高
+2 无法获取父类不可枚举的方法
+**/
+```
+
+组合继承
+
+```js
+function Cat(name){
+  Animal.call(this);
+  this.name = name || 'Tom';
+}
+Cat.prototype = new Animal();
+```
+
+
+
+Object.prototype.constructor
+
+一般指向实例对象的object构造函数
 
 
 
