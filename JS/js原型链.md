@@ -1,4 +1,5 @@
-
+JS原型以及继承
+---
 
 ##### 原型
 
@@ -52,7 +53,7 @@ String.prototype.__proto__ === Object.prototype //返回true
 
 ##### function的prototype
 
-每个function对象都有prototype属性，通过`new`操作符
+每个function对象都有prototype属性，通过`new`操作符可实现继承
 
 ```js
 //新建一个构造函数
@@ -82,66 +83,61 @@ ClassA.call(obj);
 
 
 
-##### 继承的方式：
-
-原型链继承，构造继承，实例继承，拷贝继承
-
-首先定义一个父类
-
-```js
-//新建一个构造函数
-function Animail(name){
-   //初始化代码
-   this.name = name
-}
-//设置prototype的属性
-Animail.prototype.getName = function(){
-    return this.name;
-}
-```
-
-
+##### js继承的方式：
 
 原型链继承
 
 ```js
+//创建一个Person类
+function Person(first, last, age, gender, interests) {
+  this.name = {
+    first,
+    last
+  };
+  this.age = age;
+  this.gender = gender;
+  this.interests = interests;
+};
 
-function Cat(name){
-    this.name = name;
+Person.prototype.greeting = function() {
+  alert('Hi! I\'m ' + this.name.first + '.');
+};
+
+//设置 Teacher() 的原型和构造器引用
+//创建一个Teacher类，继承Person的所有成员
+function Teacher(first, last, age, gender, interests, subject) {
+  Person.call(this, first, last, age, gender, interests);
+
+  this.subject = subject;
 }
-//cat继承Animail
-Cat.prototype = new Animail()
-//将prototype的construction指向构造函数
-Cat.prototype.constructor = Cat
+Teacher.prototype = Object.create(Person.prototype);
 
-/**缺点**/
-/**
-1 来自原型对象的所有属性被所有实例共享
-2 创建子类实例时，无法向父类构造函数传参
-**/
-```
+//现在Teacher()的prototype的constructor属性指向的是Person(), 
+//所以需要下一行来指定constructor 为 Teacher
+Teacher.prototype.constructor = Teacher;
 
-构造继承
+//向 Teacher() 添加一个新的greeting()函数
+Teacher.prototype.greeting = function() {
+  var prefix;
 
-```js
-function Cat(name){
-  Animal.call(this);
-  this.name = name || 'Tom';
-}
+  if(this.gender === 'male' || this.gender === 'Male' || this.gender === 'm' || this.gender === 'M') {
+    prefix = 'Mr.';
+  } else if(this.gender === 'female' || this.gender === 'Female' || this.gender === 'f' || this.gender === 'F') {
+    prefix = 'Mrs.';
+  } else {
+    prefix = 'Mx.';
+  }
 
-/**缺点**/
-/**
-1 只能继承父类实例属性，无法继承父类的原型属性
-2 无法实现函数复用，每个子类都有父类实例函数的副本，影响性能
-**/
+  alert('Hello. My name is ' + prefix + ' ' + this.name.last + ', and I teach ' + this.subject + '.');
+};
 ```
 
 实例继承
 
 ```js
-function Cat(name){
-  var instance = new Animal();
-  instance.name = name || 'Tom';
+function Teacher(first, last, age, gender, interests,subject){
+  var instance = new Person(first, last, age, gender, interests);
+  instance.subject = subject;
   return instance;
 }
 
@@ -155,12 +151,12 @@ function Cat(name){
 拷贝继承
 
 ```js
-function Cat(name){
-  var animal = new Animal();
-  for(var p in animal){
-    Cat.prototype[p] = animal[p];
+function Teacher(first, last, age, gender, interests,subject){
+  var ps = new Person(first, last, age, gender, interests);
+  for(var p in ps){
+    Teacher.prototype[p] = ps[p];
   }
-  Cat.prototype.name = name || 'Tom';
+  Teacher.prototype.subject = subject;
 }
 
 /**缺点**/
@@ -170,21 +166,30 @@ function Cat(name){
 **/
 ```
 
-组合继承
+
+
+##### Object.prototype.constructor
+
+一般指向实例对象的构造函数
+
+所有对象都会从它的原型上继承一个 `constructor` 属性
 
 ```js
-function Cat(name){
-  Animal.call(this);
-  this.name = name || 'Tom';
-}
-Cat.prototype = new Animal();
+var o = {};
+o.constructor === Object; // true
+
+var o = new Object;
+o.constructor === Object; // true
+
+var a = [];
+a.constructor === Array; // true
+
+var a = new Array;
+a.constructor === Array // true
+
+var n = new Number(3);
+n.constructor === Number; // true
 ```
-
-
-
-Object.prototype.constructor
-
-一般指向实例对象的object构造函数
 
 
 
@@ -243,9 +248,7 @@ circle.area = 6 //写，执行完后circle的r属性一被改为6
 
 数据属性的特性：值（value）、可写性（writable），可枚举性（enumerable），可配置性（configurable）
 
-存储器属性的特性：读入（get
-
-）、写入（set），可枚举性（enumerable），可配置性（configurable）
+存储器属性的特性：读入（get）、写入（set），可枚举性（enumerable），可配置性（configurable）
 
 > 一旦可配置性修改为false,则不可再次修改属性的特性了
 
